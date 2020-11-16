@@ -64,6 +64,51 @@ POST .../plannings&booking-intent=true
             "id": "bike",
             "assetClass": "BICYCLE",
             "assetSubClass": "bike"
+          },
+          "pricing": {
+            "planId": "17",
+            "name": "Bike Price",
+            "description": "Prices for Bikes",
+            "taxable": false,
+            "fare": {
+              "estimated": false,
+              "parts": [
+                {
+                  "amount": 12.5,
+                  "units": 15,
+                  "scaleFrom": 0,
+                  "scaleTo": 15,
+                  "scaleType": "MINUTE",
+                  "currencyCode": "DKK",
+                  "type": "FLEX",
+                  "unit_type": "MINUTE",
+                  "vatRate": 25
+                },
+                {
+                  "amount": 2.5,
+                  "units": 15,
+                  "scaleFrom": 15,
+                  "scaleTo": 30,
+                  "scaleType": "MINUTE",
+                  "currencyCode": "DKK",
+                  "type": "FLEX",
+                  "unit_type": "MINUTE",
+                  "vatRate": 25
+                },
+                {
+                  "amount": 15.0,
+                  "units": 30,
+                  "scaleFrom": 30,
+                  "scaleTo": 60,
+                  "scaleType": "MINUTE",
+                  "currencyCode": "DKK",
+                  "type": "FLEX",
+                  "unit_type": "MINUTE",
+                  "vatRate": 25
+                },
+                ....
+              ]
+            }
           }
         }
       ]
@@ -99,7 +144,8 @@ POST .../plannings&booking-intent=true
             "id": "bike",
             "assetClass": "BICYCLE",
             "assetSubClass": "bike"
-          }
+          },
+          "pricing": {...}
         }
       ]
     },
@@ -112,7 +158,8 @@ POST .../plannings&booking-intent=true
             "id": "ebike",
             "assetClass": "BICYCLE",
             "assetSubClass": "ebike"
-          }
+          },
+          "pricing": {...}
         }
       ]
     }
@@ -147,7 +194,8 @@ POST .../plannings&booking-intent=true
             "id": "bike",
             "assetClass": "BICYCLE",
             "assetSubClass": "bike"
-          }
+          },
+          "pricing": {...}
         },
         {
           "id": "239fwefJJOQPBGEAZZ23"
@@ -155,7 +203,8 @@ POST .../plannings&booking-intent=true
             "id": "bike",
             "assetClass": "BICYCLE",
             "assetSubClass": "bike"
-          }
+          },
+          "pricing": {...}
         },
         {
           "id": "993cweiijoAAXX2312"
@@ -163,7 +212,8 @@ POST .../plannings&booking-intent=true
             "id": "bike",
             "assetClass": "BICYCLE",
             "assetSubClass": "bike"
-          }
+          },
+          "pricing": {...}
         }
       ]
     }
