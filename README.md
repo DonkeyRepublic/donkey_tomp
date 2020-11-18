@@ -16,9 +16,6 @@ Planning:
 * `SPECIFIC_LOCATION_BASED` - planning is done from particular station
 * `ATOMIC_PLANNING_AND_BOOKING` - booking intent planning should be immediatelly followed by booking
 
-Booking:
-* `ATOMIC_BOOKING_SET_IN_USE` - the bike (asset) should be marked as in use the moment it is booked
-
 ## Operator Information
 
 Most important endpoints from the point of view of making a booking are
@@ -44,6 +41,10 @@ Examples:
 POST .../plannings&booking-intent=true
 {
   "from": {
+    "coordinates": {
+      "lng": 12.333,
+      "lat": 55.123,
+    }
     "stationId": "1551"
   },
   "nrOfTravelers": 1
@@ -59,7 +60,14 @@ POST .../plannings&booking-intent=true
       "id": "FU-lA9P4MRWn1F8QkO8EiQ",
       "legs": [
         {
-          "id": "839423832jIFwe"
+          "id": "839423832jIFwe",
+          "from": {
+            "stationId": "123",
+            "coordinates": {
+              "lng": 12.333,
+              "lat": 55.123
+            }
+          },
           "assetType": {
             "id": "bike",
             "assetClass": "BICYCLE",
@@ -124,7 +132,11 @@ POST .../plannings&booking-intent=true
 POST .../plannings&booking-intent=true
 {
   "from": {
-    "stationId": "1551"
+    "stationId": "123",
+    "coordinates": {
+      "lng": 12.333,
+      "lat": 55.123
+    }
   },
   "nrOfTravelers": 1
 }
@@ -139,7 +151,14 @@ POST .../plannings&booking-intent=true
       "id": "FU-lA9P4MRWn1F8QkO8EiQ",
       "legs": [
         {
-          "id": "839423832jIFwe"
+          "id": "839423832jIFwe",
+          "from": {
+            "stationId": "123",
+            "coordinates": {
+              "lng": 12.333,
+              "lat": 55.123
+            }
+          },
           "assetType": {
             "id": "bike",
             "assetClass": "BICYCLE",
@@ -154,6 +173,13 @@ POST .../plannings&booking-intent=true
       "legs": [
         {
           "id": "239fwefJJOQPBGEAZZ23"
+          "from": {
+            "stationId": "123",
+            "coordinates": {
+              "lng": 12.333,
+              "lat": 55.123
+            }
+          },
           "assetType": {
             "id": "ebike",
             "assetClass": "BICYCLE",
@@ -174,7 +200,11 @@ POST .../plannings&booking-intent=true
 POST .../plannings&booking-intent=true
 {
   "from": {
-    "stationId": "1551"
+    "stationId": "1551",
+    "coordinates": {
+      "lng": 12.333,
+      "lat": 55.123
+    }
   },
   "nrOfTravelers": 3
 }
@@ -190,6 +220,13 @@ POST .../plannings&booking-intent=true
       "legs": [
         {
           "id": "839423832jIFwe"
+          "from": {
+            "stationId": "123",
+            "coordinates": {
+              "lng": 12.333,
+              "lat": 55.123
+            }
+          },
           "assetType": {
             "id": "bike",
             "assetClass": "BICYCLE",
@@ -199,6 +236,13 @@ POST .../plannings&booking-intent=true
         },
         {
           "id": "239fwefJJOQPBGEAZZ23"
+          "from": {
+            "stationId": "123",
+            "coordinates": {
+              "lng": 12.333,
+              "lat": 55.123
+            }
+          },
           "assetType": {
             "id": "bike",
             "assetClass": "BICYCLE",
@@ -208,6 +252,13 @@ POST .../plannings&booking-intent=true
         },
         {
           "id": "993cweiijoAAXX2312"
+          "from": {
+            "stationId": "123",
+            "coordinates": {
+              "lng": 12.333,
+              "lat": 55.123
+            }
+          },
           "assetType": {
             "id": "bike",
             "assetClass": "BICYCLE",
@@ -221,6 +272,136 @@ POST .../plannings&booking-intent=true
 }
 ```
 
+## Booking
+### Creating a booking
+
+Booking should happen immediatelly after the planning produced booking options. Otherwise there is a risk of
+someone fetching all the bikes from particular station. At this point booking is in state PENDING and legs are in
+state NOT_STARTED. We don't provide access codes to the bike yet.
+
+```
+// REQUEST
+POST /bookings/
+{
+  "id": "FU-lA9P4MRWn1F8QkO8EiQ",
+  "customer": {
+    "id": "1421322", // id of the customer in MP service
+    "firstName": "John",
+    "lastName": "Smith",
+    "email": "john.smith@example.com",
+    "phone": [
+      {
+        "number": "+123123123",
+      }
+    ]
+  }
+}
 
 
+//RESPONSE
+201 Created
+{
+  "id": "FU-lA9P4MRWn1F8QkO8EiQ",
+  "bookingState": "PENDING",
+  "customer": {
+    "id": "1421322",
+    "firstName": "John",
+    "lastName": "Smith",
+    "email": "john.smith@example.com",
+    "phone": [
+      {
+        "number": "+123123123",
+      }
+    ]
+  },
+  "legs": [
+    {
+      "id": "839423832jIFwe",
+      "from": {
+        "stationId": "123",
+        "coordinates": {
+          "lng": 12.333,
+          "lat": 55.123
+        }
+      },
+      "state": "NOT_STARTED",
+      "assetType": {
+        "id": "bike",
+        "assetClass": "BICYCLE",
+        "assetSubClass": "bike"
+      },
+      "asset": {
+        "id": "bike-12331",
+        "overridenProperties": {
+          "name": "Speedy"
+        }
+      },
+      "pricing": {.... },
+    }
+  ]
+}
+```
 
+### COMMITING THE BOOKING
+Again, this should be done right after the booking is created. WHen this happens the booking is marked
+as STARTED and we set legs in state PAUSED - it's because our system doesn't have a notion of reserved
+bike - the moment it is booked the rental is started. Moreover, from this point on we start supplying
+access codes required to open the bike.
+
+
+```
+// REQUEST
+POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
+{
+  operation: "CONFIRM"
+}
+
+// RESPONSE
+201 Created
+{
+  "id": "FU-lA9P4MRWn1F8QkO8EiQ",
+  "bookingState": "PENDING",
+  "customer": {
+    "id": "1421322",
+    "firstName": "John",
+    "lastName": "Smith",
+    "email": "john.smith@example.com",
+    "phone": [
+      {
+        "number": "+123123123",
+      }
+    ]
+  },
+  "legs": [
+    {
+      "id": "839423832jIFwe",
+      "state": "PAUSED",
+      "departureTime": "2020-11-18T20:34:00Z",
+      "from": {
+        "stationId": "123",
+        "coordinates": {
+          "lng": 12.333,
+          "lat": 55.123
+        }
+      },
+      "assetType": {
+        "id": "bike",
+        "assetClass": "BICYCLE",
+        "assetSubClass": "bike"
+      },
+      "asset": {
+        "id": "bike-12331",
+        "overridenProperties": {
+          "name": "Speedy"
+        }
+      },
+      "assetAccessData": {
+        "validFrom": "2020-11-18T20:34:00Z",
+        "validTo": "2020-11-19T20:34:00Z",
+        "tokenType": "ekey",
+        "tokenData": { "ekey": "9fwe9ui0fjewoif98weu0foiew...." }
+      },
+      "pricing": {.... },
+    }
+  ]
+}
