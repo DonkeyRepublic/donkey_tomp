@@ -399,7 +399,11 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
         "validFrom": "2020-11-18T20:34:00Z",
         "validTo": "2020-11-19T20:34:00Z",
         "tokenType": "ekey",
-        "tokenData": { "ekey": "9fwe9ui0fjewoif98weu0foiew...." }
+        "tokenData": {
+          "deviceName": "axa:1231442221",
+          "btAddress": "AB:12:32:21:44:ES",
+          "ekey": "9fwe9ui0fjewoif98weu0foiew...."
+        }
       },
       "pricing": {.... },
     }
