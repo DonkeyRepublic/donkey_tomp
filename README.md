@@ -411,17 +411,17 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
 }
 ```
 
-## Trip Execution Module
-To be defined... Will (at least) be used to:
+## Trip Execution
+To be defined... Will (at least) be used to:  
 - Unlock and lock ebikes
 - Update the rental with various events like unlock and lock for pedal bikes
 - End the rental
 
 
-## Support Module
-To be defined... 
+## Support
+To be defined...  
 Will be used to handle support cases. Alternatively a direct connection between TO an MP ticketing system can also be set up.
 
-## Payment Module
-To be defined... 
+## Payment
+To be defined...  
 Used by TO to instruct MP what to charge. This includes ride price after rental but also fees.
