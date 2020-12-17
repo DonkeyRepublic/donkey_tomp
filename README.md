@@ -398,11 +398,9 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
       "assetAccessData": {
         "validFrom": "2020-11-18T20:34:00Z",
         "validTo": "2020-11-19T20:34:00Z",
-        "tokenType": "ekey",
-        "tokenData": {
-          "deviceName": "axa:1231442221",
-          "btAddress": "AB:12:32:21:44:ES",
-          "ekey": "9fwe9ui0fjewoif98weu0foiew...."
+        "tokenType": "sdk",
+        "tokenData":
+          "sdkToken": "9fwe9ui0fjewoif98weu0foiew...."
         }
       },
       "pricing": {.... },
@@ -412,16 +410,160 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
 ```
 
 ## Trip Execution
-To be defined... Will (at least) be used to:  
-- Unlock and lock ebikes
-- Update the rental with various events like unlock and lock for pedal bikes
-- End the rental
 
+Depending on the `assetAccessData.tokenType` the bike will be either unlocked via bluetooth (with an SDK) or just by calling leg events TOMP endpoint.
+Those are possible values of `tokenType`
+* `"sdk"` - used for bluetooth locks
+* `"online"` - bike will be locked/unlocked with TOMP events on legs. In this case `tokenData` will be an empty object
+
+### Unlocking the bike
+#### Bluetooth Lock (SDK)
+
+1. First you need to call SDK's unlock method with the token from assetAccessData.
+2. If the unlock is successful then you should call `/legs/{id}/events` TOMP endpoint with `SET_IN_USE`
+event which will report that the bike is now unlocked. Additionally the request should include the current location
+of the bike
+
+```
+// REQUEST
+POST /legs/839423832jIFwe/events
+{
+  "time": "2020-11-18T20:34:00Z",
+  "event": "SET_IN_USE",
+  "asset": {
+    "id": "bike-12331",
+    "overridenProperties": {
+      "location": {
+        "coordinates": {
+          "lat": 55.12312,
+          "lng": 12.2221
+        }
+      }
+    }
+  }
+}
+```
+
+#### Online Lock
+
+In order to unlock online lock the only thing to do is to call `/legs/{id}/events` endpoint with `SET_IN_USE`
+event and current location of the user
+
+```
+// REQUEST
+POST /legs/839423832jIFwe/events
+{
+  "time": "2020-11-18T20:34:00Z",
+  "event": "SET_IN_USE",
+  "asset": {
+    "id": "bike-12331",
+    "overridenProperties": {
+      "location": {
+        "coordinates": {
+          "lat": 55.12312,
+          "lng": 12.2221
+        }
+      }
+    }
+  }
+}
+```
+
+### Locking the bike
+#### Bluetooth Lock (SDK)
+1. First you need to call SDK's lock method with the token from assetAccessData (and with isEndingRental flag set to false)
+2. If the lock is successful then you should call `/legs/{id}/events` TOMP endpoint with `PAUSE`
+event which will report that the bike is now unlocked. Additionally the request should include the current location
+of the bike
+
+```
+// REQUEST
+POST /legs/839423832jIFwe/events
+{
+  "time": "2020-11-18T20:34:00Z",
+  "event": "PAUSE",
+  "asset": {
+    "id": "bike-12331",
+    "overridenProperties": {
+      "location": {
+        "coordinates": {
+          "lat": 55.12312,
+          "lng": 12.2221
+        }
+      }
+    }
+  }
+}
+```
+
+#### Online Lock
+
+Online locks can be locked without any interaction (rider just needs to push the lever to lock the lock).
+
+### Ending Rental
+#### Bluetooth Lock (SDK)
+1. First you need to call SDK's lock method with the token from assetAccessData (and with isEndingRental flag set to true)
+2. If the lock is successful then you should take the endRentalToken returned by SDK and use it to report `FINISH` event with
+`/legs/{id}/events`
+
+```
+// REQUEST
+POST /legs/839423832jIFwe/events
+{
+  "time": "2020-11-18T20:34:00Z",
+  "event": "FINISH",
+  "asset": {
+    "id": "bike-12331",
+    "overridenProperties": {
+      "location": {
+        "coordinates": {
+          "lat": 55.12312,
+          "lng": 12.2221
+        }
+      },
+      "meta": {
+        "endRentalToken": "tgre990be9rj0i2h323dffew5522fIEFdH"
+      }
+    }
+  }
+}
+```
+
+This request can either result in 204 response when the rental was properly finished or 400 if there were problems
+with ending rental (for example the bike is not in return area)
+
+#### Online Lock
+To finish rental for online lock you just need to call `/legs/{id}/events` endpoint with `FINISH` event.
+
+```
+// REQUEST
+POST /legs/839423832jIFwe/events
+{
+  "time": "2020-11-18T20:34:00Z",
+  "event": "FINISH",
+  "asset": {
+    "id": "bike-12331",
+    "overridenProperties": {
+      "location": {
+        "coordinates": {
+          "lat": 55.12312,
+          "lng": 12.2221
+        }
+      }
+    }
+  }
+}
+```
+
+This can result in 204 response when the rental was successfully finished or 400 if there were problems
+with ending rental (for example the bike is not in return area or the lock is not locked).
 
 ## Support
-To be defined...  
+To be defined...
+
 Will be used to handle support cases. Alternatively a direct connection between TO an MP ticketing system can also be set up.
 
 ## Payment
-To be defined...  
+To be defined...
+
 Used by TO to instruct MP what to charge. This includes ride price after rental but also fees.
