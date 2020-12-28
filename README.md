@@ -276,8 +276,8 @@ POST .../plannings&booking-intent=true
 ### Creating a booking
 
 Booking should happen immediatelly after the planning produced booking options. Otherwise there is a risk of
-someone fetching all the bikes from particular station. At this point booking is in state PENDING and legs are in
-state NOT_STARTED. We don't provide access codes to the bike yet.
+someone fetching all the bikes from particular station. At this point booking is in state PENDING.
+We don't provide access codes to the bike yet.
 
 ```
 // REQUEST
@@ -302,7 +302,7 @@ POST /bookings/
 201 Created
 {
   "id": "FU-lA9P4MRWn1F8QkO8EiQ",
-  "bookingState": "PENDING",
+  "state": "PENDING",
   "customer": {
     "id": "1421322",
     "firstName": "John",
@@ -324,7 +324,6 @@ POST /bookings/
           "lat": 55.123
         }
       },
-      "state": "NOT_STARTED",
       "assetType": {
         "id": "bike",
         "assetClass": "BICYCLE",
@@ -344,10 +343,9 @@ POST /bookings/
 
 ### COMMITING THE BOOKING
 Again, this should be done right after the booking is created. WHen this happens the booking is marked
-as STARTED and we set legs in state PAUSED - it's because our system doesn't have a notion of reserved
-bike - the moment it is booked the rental is started. Moreover, from this point on we start supplying
-access codes required to open the bike.
-
+as CONFIRMED. As our system does not support bookings with delayed start time then the price for the booking is being
+calculated from the moment it got created. From the point the booking is confirmed we will start providing data that is
+needed for the bike to be accessed.
 
 ```
 // REQUEST
@@ -360,7 +358,7 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
 201 Created
 {
   "id": "FU-lA9P4MRWn1F8QkO8EiQ",
-  "bookingState": "PENDING",
+  "state": "STARTED",
   "customer": {
     "id": "1421322",
     "firstName": "John",
@@ -375,7 +373,6 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
   "legs": [
     {
       "id": "839423832jIFwe",
-      "state": "PAUSED",
       "departureTime": "2020-11-18T20:34:00Z",
       "from": {
         "stationId": "123",
@@ -417,6 +414,9 @@ Those are possible values of `tokenType`
 * `"online"` - bike will be locked/unlocked with TOMP events on legs. In this case `tokenData` will be an empty object
 
 ### Unlocking the bike
+Whenever the bike is unlocked for the first time then the booking is marked as STARTED. That means it can't be
+canceled anymore.
+
 #### Bluetooth Lock (SDK)
 
 1. First you need to call SDK's unlock method with the token from assetAccessData.
