@@ -4,10 +4,25 @@ This is a document that describes how Donkey Republic will work with TOMP API.
 Please note that it is still work in progress and significant parts of the solution
 may change.
 
+# Table of Contents
+* [General Information](#general-information)
+* [Process Identifiers](#process-identifiers)
+* [Lifecycle of a rental made with TOMP](#lifecycle-of-a-rental-made-with-tomp)
+* [Endpoints](#endpoints)
+  * [Operator Information](#operator-information)
+    * [Stations](#stations)
+    * [Available assets](#available-assets)
+  * [Plannings](#plannings)
+    * [Planning create](#planning-create)
+  * [Bookings](#bookings)
+    * [Booking create](#booking-create)
+    * [Booking events](#booking-events)
+
 ## General Information
+### Donkey Republic in various cities
 Donkey TOMP API is containerized into particular donkey cities. Therefore when calling
 `/api/public/tomp/donkey_copenhagen/...` endpoints then it contains information only
-aboutn the system operation in copenhagen
+about the system operation in copenhagen.
 
 ## Process Identifiers
 TOMP processes used in Donkey:
@@ -16,28 +31,138 @@ Planning:
 * `SPECIFIC_LOCATION_BASED` - planning is done from particular station
 * `ATOMIC_PLANNING_AND_BOOKING` - booking intent planning should be immediatelly followed by booking
 
-## Operator Information
+## Lifecycle of a rental made with TOMP
 
-Most important endpoints from the point of view of making a booking are
-`/operator/stations` that contains basic information about stations (name, coordinates etc)
-and `/operator/available-assets` which contains info about how many bike are available at given station
-of each type (station can have both regular bikes and e-bikes for example).
+### Creating a booking
+1. Fetch stations using [Stations endpoint](#stations).
 
-Moreover, TOMP specification will probably soon have a place to store information about number of
-available parking spaces at each station. Not sure which endpoint will have that information yet so this is
-to be announced.
+   This endpoint returns locations of Donkey stations. It doesn't change that often so it can be cached
+   on aggregator's side and refreshed very sporadically.
 
-## Planning
+2. Fetch number of available bikes and parking places in each station using [Available assets endpoint](#available-assets)
 
-As all data needed in exploratory mode of planning is available in operator information endpoints then
-we will support going straight to booking intended planning with proper station selected.
+   This endpoint returns numbers of available bikes in each station (per bike type, so if there are both ebikes and bikes available
+   in particular city it would return separate numbers for how many ebikes and how many bikes are available). Moreover, it returns number
+   of available parking spaces per station.
 
-Examples:
+3. Once you know which station you want to rent a bike from start with sygnalizing your booking intention by calling [Planning create endpoint](#planning-create)
+   with the station of choice.
+
+   As a result you will receive a list of tentative bookings that are possible to made from given stations. So if there are 2 types of bikes possible
+   you will receive 2 booking options. If there is no available bikes in given location you will receive empty list of options.
+
+4. Initiate your booking by calling [Booking create endpoint](#booking-create)
+
+   For this call you will need one of the booking IDs you got in point #3 and information about the customer. As a result you will
+   get a booking in bending state.
+
+5. TBA
+
+### Cancelling the booking
+
+You can cancel your booking by calling [Booking events endpoint](#cancelling-booking) with `CANCEL` event.
+Keep in mind that the booking can be cancelled only till first unlock of the bike.
+
+
+## Endpoints
+### Operator Information
+#### Stations
+```
+//REQUEST
+GET .../operator/stations
+
+//RESPONSE
+[
+    {
+        "stationId": "10811",
+        "name": "Vægtergangen II",
+        "coordinates": {
+            "lng": 12.6389995,
+            "lat": 55.6427773
+        }
+    },
+    {
+        "stationId": "17572",
+        "name": "Flintholm Alle",
+        "coordinates": {
+            "lng": 12.5021719,
+            "lat": 55.6824307
+        }
+    },
+    {
+        "stationId": "7434",
+        "name": "Tøndergade",
+        "coordinates": {
+            "lng": 12.5418888,
+            "lat": 55.6696496
+        }
+    }
+]
+```
+
+#### Available assets
+When the amount of available asset type is 0 in given station the entry for that (asset type, station) pair does not appear in the response
 
 ```
-// Simple scenario - bike for 1 user, station has only bikes
-// REQUEST
+//REQUEST
+GET ../operator/available-assets
 
+//RESPONSE
+[
+    // Station 10811 doesn't have any available bikes, only parking spots
+    {
+        "id": "dropoff",
+        "assetClass": "PARKING",
+        "assetSubClass": "dropoff",
+        "sharedProperties": {},
+        "stationId": "10811",
+        "nrAvailable": 3
+    },
+
+    // Station 17572  has 2 parking spots and 1 available bike
+    {
+        "id": "dropoff",
+        "assetClass": "PARKING",
+        "assetSubClass": "dropoff",
+        "sharedProperties": {},
+        "stationId": "17572",
+        "nrAvailable": 2
+    },
+    {
+        "id": "bike",
+        "assetClass": "BICYCLE",
+        "assetSubClass": "bike",
+        "sharedProperties": {},
+        "stationId": "17572",
+        "nrAvailable": 1
+    },
+
+    // Station 7434 has 1 bike, 2 ebikes and no available parking spots
+    {
+        "id": "ebike",
+        "assetClass": "BICYCLE",
+        "assetSubClass": "ebike",
+        "sharedProperties": {},
+        "stationId": "17572",
+        "nrAvailable": 1
+    },
+    {
+        "id": "bike",
+        "assetClass": "BICYCLE",
+        "assetSubClass": "bike",
+        "sharedProperties": {},
+        "stationId": "17572",
+        "nrAvailable": 2
+    }
+]
+```
+
+### Plannings
+#### Planning create
+
+When station has only one type of vehicles:
+
+```
 POST .../plannings&booking-intent=true
 {
   "from": {
@@ -102,18 +227,7 @@ POST .../plannings&booking-intent=true
                   "type": "FLEX",
                   "unit_type": "MINUTE",
                   "vatRate": 25
-                },
-                {
-                  "amount": 15.0,
-                  "units": 30,
-                  "scaleFrom": 30,
-                  "scaleTo": 60,
-                  "scaleType": "MINUTE",
-                  "currencyCode": "DKK",
-                  "type": "FLEX",
-                  "unit_type": "MINUTE",
-                  "vatRate": 25
-                },
+                }
                 ....
               ]
             }
@@ -125,8 +239,10 @@ POST .../plannings&booking-intent=true
 }
 ```
 
+When station has both bikes and ebikes available the response contains two booking options
+
 ```
-// Scenario: bike for 1 user, there are bikes and ebikes in the station
+//
 // REQUEST
 
 POST .../plannings&booking-intent=true
@@ -193,88 +309,9 @@ POST .../plannings&booking-intent=true
 }
 ```
 
-```
-// Scenario: more than 1 traveler
-// REQUEST
 
-POST .../plannings&booking-intent=true
-{
-  "from": {
-    "stationId": "1551",
-    "coordinates": {
-      "lng": 12.333,
-      "lat": 55.123
-    }
-  },
-  "nrOfTravelers": 3
-}
-
-// RESPONSE
-
-201 Created
-{
-  "validUntil": "2020-11-16T15:46:49.133Z",
-  "options": [
-    {
-      "id": "FU-lA9P4MRWn1F8QkO8EiQ",
-      "legs": [
-        {
-          "id": "839423832jIFwe"
-          "from": {
-            "stationId": "123",
-            "coordinates": {
-              "lng": 12.333,
-              "lat": 55.123
-            }
-          },
-          "assetType": {
-            "id": "bike",
-            "assetClass": "BICYCLE",
-            "assetSubClass": "bike"
-          },
-          "pricing": {...}
-        },
-        {
-          "id": "239fwefJJOQPBGEAZZ23"
-          "from": {
-            "stationId": "123",
-            "coordinates": {
-              "lng": 12.333,
-              "lat": 55.123
-            }
-          },
-          "assetType": {
-            "id": "bike",
-            "assetClass": "BICYCLE",
-            "assetSubClass": "bike"
-          },
-          "pricing": {...}
-        },
-        {
-          "id": "993cweiijoAAXX2312"
-          "from": {
-            "stationId": "123",
-            "coordinates": {
-              "lng": 12.333,
-              "lat": 55.123
-            }
-          },
-          "assetType": {
-            "id": "bike",
-            "assetClass": "BICYCLE",
-            "assetSubClass": "bike"
-          },
-          "pricing": {...}
-        }
-      ]
-    }
-  ]
-}
-```
-
-## Booking
-### Creating a booking
-
+### Bookings
+#### Booking create
 Booking should happen immediatelly after the planning produced booking options. Otherwise there is a risk of
 someone fetching all the bikes from particular station. At this point booking is in state PENDING.
 We don't provide access codes to the bike yet.
@@ -303,17 +340,6 @@ POST /bookings/
 {
   "id": "FU-lA9P4MRWn1F8QkO8EiQ",
   "state": "PENDING",
-  "customer": {
-    "id": "1421322",
-    "firstName": "John",
-    "lastName": "Smith",
-    "email": "john.smith@example.com",
-    "phone": [
-      {
-        "number": "+123123123",
-      }
-    ]
-  },
   "legs": [
     {
       "id": "839423832jIFwe",
@@ -341,24 +367,20 @@ POST /bookings/
 }
 ```
 
-### COMMITING THE BOOKING
-Again, this should be done right after the booking is created. WHen this happens the booking is marked
-as CONFIRMED. As our system does not support bookings with delayed start time then the price for the booking is being
-calculated from the moment it got created. From the point the booking is confirmed we will start providing data that is
-needed for the bike to be accessed.
-
+#### Booking Events
+##### Cancelling booking
 ```
 // REQUEST
 POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
 {
-  operation: "CONFIRM"
+  operation: "CANCEL"
 }
 
 // RESPONSE
 201 Created
 {
   "id": "FU-lA9P4MRWn1F8QkO8EiQ",
-  "state": "STARTED",
+  "state": "CANCELLED",
   "customer": {
     "id": "1421322",
     "firstName": "John",
@@ -392,178 +414,21 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
           "name": "Speedy"
         }
       },
-      "assetAccessData": {
-        "validFrom": "2020-11-18T20:34:00Z",
-        "validTo": "2020-11-19T20:34:00Z",
-        "tokenType": "sdk",
-        "tokenData":
-          "sdkToken": "9fwe9ui0fjewoif98weu0foiew...."
-        }
-      },
       "pricing": {.... },
     }
   ]
 }
 ```
 
-## Trip Execution
+### Trip Execution
+To be defined ...
 
-Depending on the `assetAccessData.tokenType` the bike will be either unlocked via bluetooth (with an SDK) or just by calling leg events TOMP endpoint.
-Those are possible values of `tokenType`
-* `"sdk"` - used for bluetooth locks
-* `"online"` - bike will be locked/unlocked with TOMP events on legs. In this case `tokenData` will be an empty object
-
-### Unlocking the bike
-Whenever the bike is unlocked for the first time then the booking is marked as STARTED. That means it can't be
-canceled anymore.
-
-#### Bluetooth Lock (SDK)
-
-1. First you need to call SDK's unlock method with the token from assetAccessData.
-2. If the unlock is successful then you should call `/legs/{id}/events` TOMP endpoint with `SET_IN_USE`
-event which will report that the bike is now unlocked. Additionally the request should include the current location
-of the bike
-
-```
-// REQUEST
-POST /legs/839423832jIFwe/events
-{
-  "time": "2020-11-18T20:34:00Z",
-  "event": "SET_IN_USE",
-  "asset": {
-    "id": "bike-12331",
-    "overridenProperties": {
-      "location": {
-        "coordinates": {
-          "lat": 55.12312,
-          "lng": 12.2221
-        }
-      }
-    }
-  }
-}
-```
-
-#### Online Lock
-
-In order to unlock online lock the only thing to do is to call `/legs/{id}/events` endpoint with `SET_IN_USE`
-event and current location of the user
-
-```
-// REQUEST
-POST /legs/839423832jIFwe/events
-{
-  "time": "2020-11-18T20:34:00Z",
-  "event": "SET_IN_USE",
-  "asset": {
-    "id": "bike-12331",
-    "overridenProperties": {
-      "location": {
-        "coordinates": {
-          "lat": 55.12312,
-          "lng": 12.2221
-        }
-      }
-    }
-  }
-}
-```
-
-### Locking the bike
-#### Bluetooth Lock (SDK)
-1. First you need to call SDK's lock method with the token from assetAccessData (and with isEndingRental flag set to false)
-2. If the lock is successful then you should call `/legs/{id}/events` TOMP endpoint with `PAUSE`
-event which will report that the bike is now unlocked. Additionally the request should include the current location
-of the bike
-
-```
-// REQUEST
-POST /legs/839423832jIFwe/events
-{
-  "time": "2020-11-18T20:34:00Z",
-  "event": "PAUSE",
-  "asset": {
-    "id": "bike-12331",
-    "overridenProperties": {
-      "location": {
-        "coordinates": {
-          "lat": 55.12312,
-          "lng": 12.2221
-        }
-      }
-    }
-  }
-}
-```
-
-#### Online Lock
-
-Online locks can be locked without any interaction (rider just needs to push the lever to lock the lock).
-
-### Ending Rental
-#### Bluetooth Lock (SDK)
-1. First you need to call SDK's lock method with the token from assetAccessData (and with isEndingRental flag set to true)
-2. If the lock is successful then you should take the endRentalToken returned by SDK and use it to report `FINISH` event with
-`/legs/{id}/events`
-
-```
-// REQUEST
-POST /legs/839423832jIFwe/events
-{
-  "time": "2020-11-18T20:34:00Z",
-  "event": "FINISH",
-  "asset": {
-    "id": "bike-12331",
-    "overridenProperties": {
-      "location": {
-        "coordinates": {
-          "lat": 55.12312,
-          "lng": 12.2221
-        }
-      },
-      "meta": {
-        "endRentalToken": "tgre990be9rj0i2h323dffew5522fIEFdH"
-      }
-    }
-  }
-}
-```
-
-This request can either result in 204 response when the rental was properly finished or 400 if there were problems
-with ending rental (for example the bike is not in return area)
-
-#### Online Lock
-To finish rental for online lock you just need to call `/legs/{id}/events` endpoint with `FINISH` event.
-
-```
-// REQUEST
-POST /legs/839423832jIFwe/events
-{
-  "time": "2020-11-18T20:34:00Z",
-  "event": "FINISH",
-  "asset": {
-    "id": "bike-12331",
-    "overridenProperties": {
-      "location": {
-        "coordinates": {
-          "lat": 55.12312,
-          "lng": 12.2221
-        }
-      }
-    }
-  }
-}
-```
-
-This can result in 204 response when the rental was successfully finished or 400 if there were problems
-with ending rental (for example the bike is not in return area or the lock is not locked).
-
-## Support
+### Support
 To be defined...
 
 Will be used to handle support cases. Alternatively a direct connection between TO an MP ticketing system can also be set up.
 
-## Payment
+### Payment
 To be defined...
 
 Used by TO to instruct MP what to charge. This includes ride price after rental but also fees.
