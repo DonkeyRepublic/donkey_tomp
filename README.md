@@ -7,6 +7,7 @@ may change.
 # Table of Contents
 * [General Information](#general-information)
 * [Process Identifiers](#process-identifiers)
+* [A word about pricing](#a-word-about-pricing)
 * [Lifecycle of a rental made with TOMP](#lifecycle-of-a-rental-made-with-tomp)
 * [Endpoints](#endpoints)
   * [Operator Information](#operator-information)
@@ -30,6 +31,106 @@ TOMP processes used in Donkey:
 Planning:
 * `SPECIFIC_LOCATION_BASED` - planning is done from particular station
 * `ATOMIC_PLANNING_AND_BOOKING` - booking intent planning should be immediatelly followed by booking
+
+## A word about pricing
+
+The pricing in our system is build in such a way to promote longer rentals so that people don't need
+to feel rushed on a bike and can keep the bike longer even if they are taking pauses (going to the restaurant
+or a shop).
+
+The example pricing could look like the following:
+
+![Pricing](images/pricing.jpeg)
+
+Which basically means:
+* If your ride is up to 15 minutes - the price is 1.5 EUR
+* If your ride is between 15 and 30 minutes - the price is 2 EUR
+* If between 30 minutes and 1 hour - 3 EUR
+
+[TOMP's pricing definition](https://github.com/TOMP-WG/TOMP-API/wiki/Payment#in-depth-the-fare-object) doesn't directly support
+such a pricing but it does have a scaling type of pricing that can handle an example given in TOMP's documentation:
+> bike rental, 1.50USD per half hour for the first hour, after this 2.50USD per hour
+
+We are leveraging this scaling model to produce our pricing. So the example Donkey pricing seen in the picture above would look like this:
+
+```
+[
+  {
+    "amount": 1.5,
+    "units": 15,
+    "scaleFrom": 0,
+    "scaleTo": 15,
+    "scaleType": "MINUTE",
+    "currencyCode": "EUR",
+    "type": "FLEX",
+    "unitType": "MINUTE",
+    "vatRate": 21.0
+  },
+  {
+    "amount": 0.5,
+    "units": 15,
+    "scaleFrom": 15,
+    "scaleTo": 30,
+    "scaleType": "MINUTE",
+    "currencyCode": "EUR",
+    "type": "FLEX",
+    "unitType": "MINUTE",
+    "vatRate": 21.0
+  },
+  {
+    "amount": 1.0,
+    "units": 30,
+    "scaleFrom": 30,
+    "scaleTo": 60,
+    "scaleType": "MINUTE",
+    "currencyCode": "EUR",
+    "type": "FLEX",
+    "unitType": "MINUTE",
+    "vatRate": 21.0
+  },
+  {
+    "amount": 2.0,
+    "units": 60,
+    "scaleFrom": 60,
+    "scaleTo": 120,
+    "scaleType": "MINUTE",
+    "currencyCode": "EUR",
+    "type": "FLEX",
+    "unitType": "MINUTE",
+    "vatRate": 21.0
+  },
+  ...
+]
+```
+
+So basically our pricing in TOMP's terms is defined as:
+* For first 15 minutes of the ride we charge 1.5 EUR per 15 minutes
+* Later up to 30 minutes of the ride we charge 0.5 EUR per 15 minutes
+* Later up to 60 minutes of the ride we charge 1 EUR per 30 minutes
+* Then up to 120 minutes of the ride we charge 2 EUR per 60 minutes
+
+Our pricings also are usually defined with set amounts till 1 or 2 days of rental time.
+Then we have a pricing item that says what's the price for each additional day.
+In case of this example pricing we had prices defined up to 72 hours and then we had the additional
+day price point which will look like that (notice that `scaletTo` is not defined which means
+that this is the pricing for the rest of the ride):
+
+
+```
+  {
+    "amount": 7.0,
+    "units": 1440,
+    "scaleFrom": 4320,
+    "scaleType": "MINUTE",
+    "currencyCode": "EUR",
+    "type": "FLEX",
+    "unitType": "MINUTE",
+    "vatRate": 21.0
+  }
+```
+
+Basically this pricing point means:
+After the ride was 4320 minutes long (3 days) we charge 7 EUR per 1440 minutes (1 day)
 
 ## Lifecycle of a rental made with TOMP
 
