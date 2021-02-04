@@ -9,6 +9,7 @@ may change.
 * [Process Identifiers](#process-identifiers)
 * [A word about pricing](#a-word-about-pricing)
 * [Lifecycle of a rental made with TOMP](#lifecycle-of-a-rental-made-with-tomp)
+* [How to use the API](#how-to-use-the-api)
 * [Endpoints](#endpoints)
   * [Operator Information](#operator-information)
     * [Stations](#stations)
@@ -22,7 +23,7 @@ may change.
 ## General Information
 ### Donkey Republic in various cities
 Donkey TOMP API is containerized into particular donkey cities. Therefore when calling
-`/api/public/tomp/donkey_copenhagen/...` endpoints then it contains information only
+`/api/aggregators/tomp/donkey_rotterdam/...` endpoints then it contains information only
 about the system operation in copenhagen.
 
 ## Process Identifiers
@@ -164,6 +165,25 @@ After the ride was 4320 minutes long (3 days) we charge 7 EUR per 1440 minutes (
 You can cancel your booking by calling [Booking events endpoint](#cancelling-booking) with `CANCEL` event.
 Keep in mind that the booking can be cancelled only till first unlock of the bike.
 
+## How to use the API
+
+All API Requests need to be authenticated with the API key, the body of POST requests should be in json format
+and the request should accept json format in response. Like so:
+
+```
+POST /api/aggregators/tomp/donkey_rotterdam/plannings?booking_intent=true  HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+X-Api-Key: TheApiKey
+...other headers like host, content length etc
+
+{
+  "from": {
+      "stationId": "3628"
+  },
+  "nrOfTravelers": 1
+}
+```
 
 ## Endpoints
 ### Operator Information
