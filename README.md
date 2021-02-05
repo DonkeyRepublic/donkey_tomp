@@ -61,11 +61,11 @@ There is a general guideline about how errors should be handled in TOMP api desc
 
 The first indication about what kind of error you got is HTTP status code and then more information is represented in returned json that looks like this:
 
-```json
+```
 {
-  errorcode: 2002,
-  title: "Invalid parameters",
-  detail: "Invalid stationId"
+  "errorcode": 2002,
+  "title": "Invalid parameters",
+  "detail": "Invalid stationId"
 }
 ```
 
@@ -305,7 +305,7 @@ GET ../operator/available-assets
 When station has only one type of vehicles:
 
 ```
-POST .../plannings&booking-intent=true
+POST .../plannings?booking-intent=true
 {
   "from": {
     "coordinates": {
@@ -521,6 +521,42 @@ POST /bookings/
   ]
 }
 ```
+
+##### Possible errors
+* Some parameter is invalid
+  ```json
+    HTTP/1.1 400 Bad Request
+    Content-Type: application/json
+
+    {
+      "errorcode": 3002,
+      "title": "Invalid parameters",
+      "detail": "/id is required, /customer/email is invalid"
+    }
+  ```
+
+* The station where the booking was drafted for doesn't have any available bikes anymore
+  ```json
+    HTTP/1.1 410 Bad Request
+    Content-Type: application/json
+
+    {
+      "errorcode": 3202,
+      "title": "Vehicles no longer available",
+    }
+  ```
+
+* Given user already has an active booking
+  ```json
+    HTTP/1.1 400 Bad Request
+    Content-Type: application/json
+
+    {
+      "errorcode": 3004,
+      "title": "This user has an active booking",
+    }
+  ```
+
 
 #### Booking Events
 ##### Cancelling booking
