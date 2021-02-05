@@ -7,9 +7,11 @@ may change.
 # Table of Contents
 * [General Information](#general-information)
 * [Process Identifiers](#process-identifiers)
+* [How to use the API](#how-to-use-the-api)
+  * [Api Key and other headers](#api-key-and-other-headers)
+  * [Errors](#errors)
 * [A word about pricing](#a-word-about-pricing)
 * [Lifecycle of a rental made with TOMP](#lifecycle-of-a-rental-made-with-tomp)
-* [How to use the API](#how-to-use-the-api)
 * [Endpoints](#endpoints)
   * [Operator Information](#operator-information)
     * [Stations](#stations)
@@ -32,6 +34,44 @@ TOMP processes used in Donkey:
 Planning:
 * `SPECIFIC_LOCATION_BASED` - planning is done from particular station
 * `ATOMIC_PLANNING_AND_BOOKING` - booking intent planning should be immediatelly followed by booking
+
+## How to use the API
+### Api key and other headers
+
+All API Requests need to be authenticated with the API key, the body of POST requests should be in json format
+and the request should accept json format in response. Like so:
+
+```
+POST /api/aggregators/tomp/donkey_rotterdam/plannings?booking_intent=true  HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+X-Api-Key: TheApiKey
+...other headers like host, content length etc
+
+{
+  "from": {
+      "stationId": "3628"
+  },
+  "nrOfTravelers": 1
+}
+```
+
+### Errors
+There is a general guideline about how errors should be handled in TOMP api described [here](https://github.com/TOMP-WG/TOMP-API/wiki/Error-handling-in-TOMP)
+
+The first indication about what kind of error you got is HTTP status code and then more information is represented in returned json that looks like this:
+
+```json
+{
+  errorcode: 2002,
+  title: "Invalid parameters",
+  detail: "Invalid stationId"
+}
+```
+
+There are 2 error types that don't guarantee proper json response and those are errors with following HTTP statuses:
+* `500` - unexpected error
+* `404` - not found
 
 ## A word about pricing
 
@@ -165,25 +205,6 @@ After the ride was 4320 minutes long (3 days) we charge 7 EUR per 1440 minutes (
 You can cancel your booking by calling [Booking events endpoint](#cancelling-booking) with `CANCEL` event.
 Keep in mind that the booking can be cancelled only till first unlock of the bike.
 
-## How to use the API
-
-All API Requests need to be authenticated with the API key, the body of POST requests should be in json format
-and the request should accept json format in response. Like so:
-
-```
-POST /api/aggregators/tomp/donkey_rotterdam/plannings?booking_intent=true  HTTP/1.1
-Content-Type: application/json
-Accept: application/json
-X-Api-Key: TheApiKey
-...other headers like host, content length etc
-
-{
-  "from": {
-      "stationId": "3628"
-  },
-  "nrOfTravelers": 1
-}
-```
 
 ## Endpoints
 ### Operator Information
@@ -430,6 +451,19 @@ POST .../plannings&booking-intent=true
 }
 ```
 
+##### Possible errors
+* There was a problem with some parameters in the request. Example response
+
+  ```
+    HTTP/1.1 400 Bad Request
+    Content-Type: application/json
+
+    {
+      "errorcode": 2002,
+      "title": "Invalid parameters",
+      "detail": "/from/stationId is required"
+    }
+  ```
 
 ### Bookings
 #### Booking create
