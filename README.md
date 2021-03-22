@@ -17,10 +17,12 @@ may change.
   * [Unlocking and locking bike](#unlocking-and-locking-bike)
   * [Ending rental](#ending-rental)
 * [Endpoints](#endpoints)
+  * [Cities](#cities)
   * [Operator](#operator)
     * [Information](#information)
     * [Stations](#stations)
     * [Available assets](#available-assets)
+    * [Pricing plans](#pricing-plans)
   * [Plannings](#plannings)
     * [Planning create](#planning-create)
   * [Bookings](#bookings)
@@ -290,6 +292,29 @@ the lock is locked. Then the only thing left to do is use the [Leg events](#trip
 leg finish.
 
 ## Endpoints
+### Cities
+This is the only endpoint that is not scoped by particular city path. Therefore the path for this endpoint is
+`/api/aggregators/tomp/cities`. Of course the endpoint has to be authorized with api key as all the other endpoints.
+
+It returns the list of all cities where we support TOMP api.
+
+```
+GET /api/aggregators/tomp/cities
+
+[
+  {
+    "city": "Rotterdam",
+    "coordinates": {
+      "lat": 51.9242897,
+      "lng": 4.4784456
+    },
+    "countryCode": "NL",
+    "path": "/api/aggregators/tomp/donkey_rotterdam"
+  }
+]
+
+```
+
 ### Operator
 #### Information
 ```
@@ -409,6 +434,84 @@ GET ../operator/available-assets
 ]
 ```
 
+#### Pricing plans
+This represents all pricing plans that appear in given city. Since TOMP API doesn't provide a way of saying
+which pricing is for which vehicle type then we embed the id of asset type inside the id of the pricing
+so that the id of the pricing would be something like `ebike-12311`
+
+```
+[
+  {
+    "planId": "bike-81",
+    "name": "Bike Price",
+    "description": "Prices for Bikes",
+    "isTaxable": false,
+    "fare": {
+      "estimated": false,
+      "parts": [
+        {
+          "amount": 1.5,
+          "units": 15,
+          "scaleFrom": 0,
+          "scaleTo": 15,
+          "scaleType": "MINUTE",
+          "currencyCode": "EUR",
+          "type": "FLEX",
+          "unitType": "MINUTE",
+          "vatRate": 21.0
+        },
+        {
+          "amount": 0.5,
+          "units": 15,
+          "scaleFrom": 15,
+          "scaleTo": 30,
+          "scaleType": "MINUTE",
+          "currencyCode": "EUR",
+          "type": "FLEX",
+          "unitType": "MINUTE",
+          "vatRate": 21.0
+        },
+        ...
+      ]
+    }
+  },
+  {
+    "planId": "ebike-252",
+    "name": "Ebike Price",
+    "description": "Prices for Ebikes",
+    "isTaxable": false,
+    "fare": {
+      "estimated": false,
+      "parts": [
+        {
+          "amount": 2.5,
+          "units": 15,
+          "scaleFrom": 0,
+          "scaleTo": 15,
+          "scaleType": "MINUTE",
+          "currencyCode": "EUR",
+          "type": "FLEX",
+          "unitType": "MINUTE",
+          "vatRate": 21.0
+        },
+        {
+          "amount": 1.5,
+          "units": 15,
+          "scaleFrom": 15,
+          "scaleTo": 30,
+          "scaleType": "MINUTE",
+          "currencyCode": "EUR",
+          "type": "FLEX",
+          "unitType": "MINUTE",
+          "vatRate": 21.0
+        },
+        ...
+      ]
+    }
+  }
+]
+```
+
 ### Plannings
 #### Planning create
 
@@ -451,38 +554,32 @@ POST .../plannings?booking-intent=true
             "assetSubClass": "bike"
           },
           "pricing": {
-            "planId": "17",
-            "name": "Bike Price",
-            "description": "Prices for Bikes",
-            "taxable": false,
-            "fare": {
-              "estimated": false,
-              "parts": [
-                {
-                  "amount": 12.5,
-                  "units": 15,
-                  "scaleFrom": 0,
-                  "scaleTo": 15,
-                  "scaleType": "MINUTE",
-                  "currencyCode": "DKK",
-                  "type": "FLEX",
-                  "unit_type": "MINUTE",
-                  "vatRate": 25
-                },
-                {
-                  "amount": 2.5,
-                  "units": 15,
-                  "scaleFrom": 15,
-                  "scaleTo": 30,
-                  "scaleType": "MINUTE",
-                  "currencyCode": "DKK",
-                  "type": "FLEX",
-                  "unit_type": "MINUTE",
-                  "vatRate": 25
-                }
-                ....
-              ]
-            }
+            "estimated": false,
+            "parts": [
+              {
+                "amount": 12.5,
+                "units": 15,
+                "scaleFrom": 0,
+                "scaleTo": 15,
+                "scaleType": "MINUTE",
+                "currencyCode": "DKK",
+                "type": "FLEX",
+                "unit_type": "MINUTE",
+                "vatRate": 25
+              },
+              {
+                "amount": 2.5,
+                "units": 15,
+                "scaleFrom": 15,
+                "scaleTo": 30,
+                "scaleType": "MINUTE",
+                "currencyCode": "DKK",
+                "type": "FLEX",
+                "unit_type": "MINUTE",
+                "vatRate": 25
+              }
+              ....
+            ]
           }
         }
       ]
