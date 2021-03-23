@@ -33,6 +33,8 @@ may change.
   * [Trip execution (Leg Events)](#trip-execution-leg-events)
     * [Locking and unlocking](#locking-and-unlocking)
     * [Finishing rental](#finishing-rental)
+  * [Payment](#payment)
+    * [Journal entries](#journal-entries)
 * [Webhooks](#webhooks)
   * [Leg Events Webhook](#leg-events-webhook)
 
@@ -1006,6 +1008,32 @@ POST /legs/239fwefJJOQPBGEAZZ23/events
 //RESPONSE
 204 No Content
 ```
+
+### Payment
+#### Journal Entries
+The journal entries returns all invoiced items for particular aggregator and city.
+
+There are few options of filtering jornal entries by passing query parameters
+* `id` - String - id of the booking for which journal entries should be returned
+* `from` and `to` - datetime in ISO8601 format (example `"2021-03-23T14:24:31Z"`) -
+  to select a timeframe for which journal entries should be returned
+* `offset` and `limit` - integer - basic pagination
+
+```
+GET /payment/journal-entry
+[
+    {
+        "amount": 1.5,
+        "amountExVat": 1.24,
+        "vatRate": 21.0,
+        "vatCountryCode": "NL",
+        "currencyCode": "EUR",
+        "journalId": "609225"
+    },
+    ...
+]
+```
+
 
 ### Support
 To be defined...
