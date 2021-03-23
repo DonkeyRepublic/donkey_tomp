@@ -720,7 +720,7 @@ POST /bookings/
       },
       "asset": {
         "id": "bike-12331",
-        "overridenProperties": {
+        "overriddenProperties": {
           "name": "Speedy"
         }
       },
@@ -799,7 +799,7 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
       },
       "asset": {
         "id": "bike-12331",
-        "overridenProperties": {
+        "overriddenProperties": {
           "name": "Speedy"
         }
       },
@@ -856,7 +856,7 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
       },
       "asset": {
         "id": "bike-12331",
-        "overridenProperties": {
+        "overriddenProperties": {
           "name": "Speedy"
         }
       },
@@ -926,7 +926,7 @@ POST /legs/239fwefJJOQPBGEAZZ23/events
   "event": "SET_IN_USE",
   "asset": {
     "id": "bike-12331",
-    "overridenProperties": {
+    "overriddenProperties": {
       "location": {
         "coordinates": {
           "lng": 12.5021719,
@@ -955,7 +955,7 @@ POST /legs/239fwefJJOQPBGEAZZ23/events
   "event": "FINISH",
   "asset": {
     "id": "bike-12331",
-    "overridenProperties": {
+    "overriddenProperties": {
       "location": {
         "coordinates": {
           "lng": 12.5021719,
