@@ -37,6 +37,7 @@ may change.
     * [Journal entries](#journal-entries)
 * [Webhooks](#webhooks)
   * [Leg Events Webhook](#leg-events-webhook)
+  * [Additional costs](#additional-costs)
 
 ## General Information
 ### Donkey Republic in various cities
@@ -976,6 +977,31 @@ POST /legs/239fwefJJOQPBGEAZZ23/events
 204 No Content
 ```
 
+### Payment
+#### Journal Entries
+The journal entries returns all invoiced items for particular aggregator and city.
+
+There are few options of filtering jornal entries by passing query parameters
+* `id` - String - id of the booking for which journal entries should be returned
+* `from` and `to` - datetime in ISO8601 format (example `"2021-03-23T14:24:31Z"`) -
+  to select a timeframe for which journal entries should be returned
+* `offset` and `limit` - integer - basic pagination
+
+```
+GET /payment/journal-entry
+[
+    {
+        "amount": 1.5,
+        "amountExVat": 1.24,
+        "vatRate": 21.0,
+        "vatCountryCode": "NL",
+        "currencyCode": "EUR",
+        "journalId": "609225"
+    },
+    ...
+]
+```
+
 ## Webhooks
 
 The webhooks are a way for DonkeyRepublic to report changes that happen in the rental
@@ -1005,35 +1031,35 @@ POST /legs/239fwefJJOQPBGEAZZ23/events
   }
 }
 
-//RESPONSE
+//EXPECTED RESPONSE
 204 No Content
 ```
 
-### Payment
-#### Journal Entries
-The journal entries returns all invoiced items for particular aggregator and city.
-
-There are few options of filtering jornal entries by passing query parameters
-* `id` - String - id of the booking for which journal entries should be returned
-* `from` and `to` - datetime in ISO8601 format (example `"2021-03-23T14:24:31Z"`) -
-  to select a timeframe for which journal entries should be returned
-* `offset` and `limit` - integer - basic pagination
+### Additional costs
+Whenever we need to add new costs to the booking (like fee for a relocation of the bike that was incorrectly parked etc)
+or there was a refund issued for a booking we will dispatch a webhook to indicate that such a thing appeared in our system.
 
 ```
-GET /payment/journal-entry
-[
-    {
-        "amount": 1.5,
-        "amountExVat": 1.24,
-        "vatRate": 21.0,
-        "vatCountryCode": "NL",
-        "currencyCode": "EUR",
-        "journalId": "609225"
-    },
-    ...
-]
-```
+POST /payment/{booking-id}/claim-extra-costs
+{
+  "amount": 1.5,
+  "amountExVat": 1.24,
+  "vatRate": 21.0,
+  "vatCountryCode": "NL",
+  "currencyCode": "EUR",
+  "category": "REFUND" // possible categories: ["REFUND", "FINE"]
+}
 
+// EXPECTED RESPONSE
+200 OK
+{
+  "amount": 1.5,
+  "amountExVat": 1.24,
+  "vatRate": 21.0,
+  "vatCountryCode": "NL",
+  "currencyCode": "EUR",
+}
+```
 
 ### Support
 To be defined...
