@@ -1060,13 +1060,3 @@ POST /payment/{booking-id}/claim-extra-costs
   "currencyCode": "EUR",
 }
 ```
-
-### Support
-To be defined...
-
-Will be used to handle support cases. Alternatively a direct connection between TO an MP ticketing system can also be set up.
-
-### Payment
-To be defined...
-
-Used by TO to instruct MP what to charge. This includes ride price after rental but also fees.
