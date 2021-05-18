@@ -1036,8 +1036,16 @@ POST /legs/239fwefJJOQPBGEAZZ23/events
 ```
 
 ### Additional costs
-Whenever we need to add new costs to the booking (like fee for a relocation of the bike that was incorrectly parked etc)
-or there was a refund issued for a booking we will dispatch a webhook to indicate that such a thing appeared in our system.
+
+There are few cases when we will trigger that webhook:
+* When the rental has been finished and we finalized the amount that should be charged. This is not entirely according to TOMP specification
+as the name of the webhook is "claim-extra-costs" but it seems that it is resonable use of that webhook as giving a notification that we finalized the booking
+and the amount needed to charge for this booking is now set in stone. The category in such case would be `"ALL"`
+
+* Whenever there is some penalty/fine added to the booking due to some incorrect usage of the bike. In such case the category would be `"FINE"`
+
+* Whenever there is some refund issued for the booking after the booking has been finished. This can be both for the initial charge of the booking or for
+subsequent fines. The category is `"REFUND"`. Also in that casse the amount is negative.
 
 ```
 POST /payment/{booking-id}/claim-extra-costs
@@ -1047,7 +1055,7 @@ POST /payment/{booking-id}/claim-extra-costs
   "vatRate": 21.0,
   "vatCountryCode": "NL",
   "currencyCode": "EUR",
-  "category": "REFUND" // possible categories: ["REFUND", "FINE"]
+  "category": "ALL" // possible categories: ["ALL", "REFUND", "FINE"]
 }
 
 // EXPECTED RESPONSE
