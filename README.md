@@ -27,6 +27,7 @@ may change.
     * [Planning create](#planning-create)
   * [Bookings](#bookings)
     * [Booking create](#booking-create)
+    * [Get booking](#get-booking)
     * [Booking events](#booking-events)
   * [Legs](#legs)
     * [Fetch leg](#fetch-leg)
@@ -767,6 +768,46 @@ POST /bookings/
       "title": "This user has an active booking",
     }
   ```
+
+#### Get Booking
+Depending on the state of the booking it may or may not include access data for the bike.
+
+```
+// REQUEST
+GET /bookings/FU-lA9P4MRWn1F8QkO8EiQ
+
+// RESPONSE
+200 OK
+{
+  "id": "FU-lA9P4MRWn1F8QkO8EiQ",
+  "state": "PENDING",
+  "legs": [
+    {
+      "id": "839423832jIFwe",
+      "state": "PAUSED",
+      "from": {
+        "stationId": "123",
+        "coordinates": {
+          "lng": 12.333,
+          "lat": 55.123
+        }
+      },
+      "assetType": {
+        "id": "bike",
+        "assetClass": "BICYCLE",
+        "assetSubClass": "bike"
+      },
+      "asset": {
+        "id": "bike-12331",
+        "overriddenProperties": {
+          "name": "Speedy"
+        }
+      },
+      "pricing": {.... },
+    }
+  ]
+}
+```
 
 
 #### Booking Events
