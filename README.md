@@ -16,6 +16,7 @@ may change.
   * [Cancelling booking](#cancelling-booing)
   * [Unlocking and locking bike](#unlocking-and-locking-bike)
   * [Ending rental](#ending-rental)
+  * [Fetching final price](#fetching-final-price)
 * [Endpoints](#endpoints)
   * [Cities](#cities)
   * [Operator](#operator)
@@ -294,6 +295,33 @@ Lock:
 When ending the rental the aggregator's app has to make sure that the user is currently with the bike and that
 the lock is locked. Then the only thing left to do is use the [Leg events](#trip-execution-leg-events) endpoint to report
 leg finish.
+
+### Fetching final price
+
+Once rental has been finished you can fetch the final price of the booking by fetching [journal entries](#journal-entries)
+for particular bookings
+
+```
+// REQUEST
+  GET /payment/journal-entry?id=FU-lA9P4MRWn1F8QkO8EiQ
+
+// RESPONSE
+[
+  {
+    "amount": 12.0,
+    "amountExVat": 9.92,
+    "vatRate": 21.0,
+    "vatCountryCode": "NL",
+    "currencyCode": "EUR",
+    "journalId": "FU-lA9P4MRWn1F8QkO8EiQ"
+    "journalSequenceId": "1757",
+    "details": {
+      "estimated": false,
+      "parts": [...]
+    }
+  },
+
+```
 
 ## Endpoints
 ### Cities
@@ -1028,18 +1056,106 @@ There are few options of filtering jornal entries by passing query parameters
   to select a timeframe for which journal entries should be returned
 * `offset` and `limit` - integer - basic pagination
 
+There are 3 types of journal entries that you can see in the response:
+* Regular booking charges - those are the charges that the rider is charged for renting the bike.
+  Those journal entries will have a `fare` constrcut in details.
+
+* Fines - if we have to charge any fine it will show up here. Details of such journal entry
+  will contain extra costs representation with category `"FINE"`.
+
+* Refunds - whenever we issue a refund of any of the charges above. Details of refund journal entry
+  will conain extra costs representation with category `"REFUND"`. Moreover, we will include identified for a charge
+  that is being refunded in `meta` field (as shown below in the example).
+
+We have 2 fields that identify journal entries:
+* `journalId` - it represents a booking id so even when there is a list of multiple journal entries each one can be connected to a booking
+* `journalSequenceId` - identifier of particular journal entry
+
 ```
 GET /payment/journal-entry
 [
-    {
-        "amount": 1.5,
-        "amountExVat": 1.24,
-        "vatRate": 21.0,
-        "vatCountryCode": "NL",
-        "currencyCode": "EUR",
-        "journalId": "609225"
-    },
-    ...
+  // Regular charge
+  {
+    "amount": 12.0,
+    "amountExVat": 9.92,
+    "vatRate": 21.0,
+    "vatCountryCode": "NL",
+    "currencyCode": "EUR",
+    "journalId": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w"
+    "journalSequenceId": "1757",
+    "details": {
+      "estimated": false,
+      "parts": [
+        {
+          "amount": 15.0,
+          "units": 15,
+          "scaleFrom": 0,
+          "scaleTo": 15,
+          "scaleType": "MINUTE",
+          "currencyCode": "EUR",
+          "type": "FLEX",
+          "unitType": "MINUTE",
+          "vatRate": 21.0
+        },
+        {
+          "amount": 100.0,
+          "units": 1440,
+          "scaleFrom": 15,
+          "scaleType": "MINUTE",
+          "currencyCode": "EUR",
+          "type": "FLEX",
+          "unitType": "MINUTE",
+          "vatRate": 21.0
+        }
+      ]
+    }
+  },
+
+  // Fine
+  {
+    "amount": 10.0,
+    "amountExVat": 8.26,
+    "vatRate": 21.0,
+    "vatCountryCode": "NL",
+    "currencyCode": "EUR",
+    "journalId": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w"
+    "journalSequenceId": "1955",
+    "details":  {
+      "amount": 10.0,
+      "amountExVat": 8.26,
+      "vatRate": 21.0,
+      "vatCountryCode": "NL",
+      "currencyCode": "EUR",
+      "category": "FINE",
+      "description": "Lost Bike fee for one bike, fine_id: 454"
+      }
+  },
+
+  // Refund
+  {
+    "amount": -5.0,
+    "amountExVat": -4.13,
+    "vatRate": 21.0,
+    "vatCountryCode": "NL",
+    "currencyCode": "EUR",
+    "journalId": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w"
+    "journalSequenceId": "1973",
+    "details": {
+      "amount": -5.0,
+      "amountExVat": -4.13,
+      "vatRate": 21.0,
+      "vatCountryCode": "DK",
+      "currencyCode": "DKK",
+      "category": "REFUND",
+      "description": "Refund",
+      "meta": {
+        "refund_for": {
+          "journalId": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w"
+          "journalSequenceId": "1955",
+        }
+      }
+    }
+  }
 ]
 ```
 
@@ -1078,15 +1194,12 @@ POST /legs/239fwefJJOQPBGEAZZ23/events
 
 ### Additional costs
 
-There are few cases when we will trigger that webhook:
-* When the rental has been finished and we finalized the amount that should be charged. This is not entirely according to TOMP specification
-as the name of the webhook is "claim-extra-costs" but it seems that it is resonable use of that webhook as giving a notification that we finalized the booking
-and the amount needed to charge for this booking is now set in stone. The category in such case would be `"ALL"`
-
+There are 2 cases when we will trigger that webhook:
 * Whenever there is some penalty/fine added to the booking due to some incorrect usage of the bike. In such case the category would be `"FINE"`
 
 * Whenever there is some refund issued for the booking after the booking has been finished. This can be both for the initial charge of the booking or for
-subsequent fines. The category is `"REFUND"`. Also in that casse the amount is negative.
+subsequent fines. The category is `"REFUND"`. In case of refunds amounts are negative. Moreover, refunds will contain information about which journal entry is being
+refunded as seen in [Journal Entries endpoint](#journal-entries)
 
 ```
 POST /payment/{booking-id}/claim-extra-costs
@@ -1096,7 +1209,8 @@ POST /payment/{booking-id}/claim-extra-costs
   "vatRate": 21.0,
   "vatCountryCode": "NL",
   "currencyCode": "EUR",
-  "category": "ALL" // possible categories: ["ALL", "REFUND", "FINE"]
+  "category": "FINE" // possible categories: ["REFUND", "FINE"]
+  "description": "Lost Bike fee for one bike, fine_id: 454"
 }
 
 // EXPECTED RESPONSE
