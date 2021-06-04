@@ -555,7 +555,7 @@ POST .../plannings?booking-intent=true
   "from": {
     "coordinates": {
       "lng": 12.333,
-      "lat": 55.123,
+      "lat": 55.123
     }
     "stationId": "1551"
   },
