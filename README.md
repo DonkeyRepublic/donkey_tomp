@@ -627,7 +627,7 @@ When station has both bikes and ebikes available the response contains two booki
 //
 // REQUEST
 
-POST .../plannings&booking-intent=true
+POST .../plannings?booking-intent=true
 {
   "from": {
     "stationId": "123",
