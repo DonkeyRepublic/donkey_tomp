@@ -40,6 +40,7 @@ may change.
 * [Webhooks](#webhooks)
   * [Leg Events Webhook](#leg-events-webhook)
   * [Additional costs](#additional-costs)
+  * [Testing Webhooks](#testing-webhooks)
 
 ## General Information
 ### Donkey Republic in various cities
@@ -1223,3 +1224,41 @@ POST /payment/{booking-id}/claim-extra-costs
   "currencyCode": "EUR",
 }
 ```
+
+### Testing webhooks
+We introduced a way of triggering an extra costs webhooks via an API call. Those API will work only in our staging environment.
+Disclaimer: Testing endpoints are not part of official TOMP implementation and are provided only to help with testing.
+
+1. Triggeing a fine extra costs event
+
+```
+REQUEST
+POST /api/aggregators/tomp/testing/extra_costs
+{
+    "booking_id": "booking_id",
+    "category": "FINE"
+}
+
+RESPONSE
+204 No Content
+```
+
+This endpoint will charge a FINE on a selected booking. Keep in mind that the booking has to be finsihed for this to work, can't be used on ongoing booking.
+
+2. Triggering a refund event
+
+```
+REQUEST
+POST /api/aggregators/tomp/testing/extra_costs
+{
+    "booking_id": "booking_id",
+    "category": "REFUND",
+    "journal_sequence_id": "2230859"
+}
+
+RESPONSE
+204 No Content
+```
+
+This endpoint will refund one of journal entries. It does a refund for full amount of given journal entry. Keep in mind that if given entry has been already refunded then
+the result of this call will be noop.
