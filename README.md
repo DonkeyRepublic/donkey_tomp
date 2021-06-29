@@ -1226,8 +1226,26 @@ POST /payment/{booking-id}/claim-extra-costs
 ```
 
 ### Testing webhooks
-We introduced a way of triggering an extra costs webhooks via an API call. Those API will work only in our staging environment.
 Disclaimer: Testing endpoints are not part of official TOMP implementation and are provided only to help with testing.
+
+#### Updating bike lock state and location
+For testing ebikes we introduced an endpoint that makes it possible to change state and location of the bike. In case lock state changes
+it will also trigger a `SET_IN_USE` or `PAUSE` webhook. This endpoint works for ebike bookings only.
+
+```
+REQUEST
+POST /api/aggregators/tomp/testing/bike_state
+{
+  "leg_id": "YTg4ZTdiZGE3NDk0YWZjNTRkZTctMTg1MC1lYmlrZS0xLTA",
+  "bike_state": {
+      "latitude": 52.111,
+      "longitude": 12.100,
+      "locked": false
+}
+```
+
+#### Extra costs
+We introduced a way of triggering an extra costs webhooks via an API call. Those API will work only in our staging environment.
 
 1. Triggeing a fine extra costs event
 
