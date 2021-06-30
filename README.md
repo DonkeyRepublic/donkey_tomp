@@ -297,6 +297,8 @@ When ending the rental the aggregator's app has to make sure that the user is cu
 the lock is locked. Then the only thing left to do is use the [Leg events](#trip-execution-leg-events) endpoint to report
 leg finish.
 
+After the rental has been finished, it will have an `arrivalTime` field that keeps the timestamp of rental end.
+
 ### Fetching final price
 
 Once rental has been finished you can fetch the final price of the booking by fetching [journal entries](#journal-entries)
@@ -954,7 +956,8 @@ GET /legs/239fwefJJOQPBGEAZZ23/
 {
     "id": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w",
     "state": "PAUSED",
-    "departureTime": "2021-03-01T13:36:45Z"
+    "departureTime": "2021-03-01T13:36:45Z",
+    "arrivalTime": "2021-03-01T15:36:45Z" # only there for finished bookings
     "from": {
       "coordinates": {
         "lat": 51.9226929,
