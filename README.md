@@ -578,6 +578,7 @@ POST .../plannings?booking-intent=true
           "id": "839423832jIFwe",
           "from": {
             "stationId": "123",
+            "name": "Donkey Station"
             "coordinates": {
               "lng": 12.333,
               "lat": 55.123
@@ -654,6 +655,7 @@ POST .../plannings?booking-intent=true
           "id": "839423832jIFwe",
           "from": {
             "stationId": "123",
+            "name": "Donkey Station",
             "coordinates": {
               "lng": 12.333,
               "lat": 55.123
@@ -675,6 +677,7 @@ POST .../plannings?booking-intent=true
           "id": "239fwefJJOQPBGEAZZ23"
           "from": {
             "stationId": "123",
+            "name": "Donkey Station",
             "coordinates": {
               "lng": 12.333,
               "lat": 55.123
@@ -743,6 +746,7 @@ POST /bookings/
       "state": "PAUSED",
       "from": {
         "stationId": "123",
+        "name": "Donkey Station",
         "coordinates": {
           "lng": 12.333,
           "lat": 55.123
@@ -818,6 +822,7 @@ GET /bookings/FU-lA9P4MRWn1F8QkO8EiQ
       "state": "PAUSED",
       "from": {
         "stationId": "123",
+        "name": "Donkey Station",
         "coordinates": {
           "lng": 12.333,
           "lat": 55.123
@@ -862,6 +867,7 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
       "departureTime": "2020-11-18T20:34:00Z",
       "from": {
         "stationId": "123",
+        "name": "Donkey Station",
         "coordinates": {
           "lng": 12.333,
           "lat": 55.123
@@ -908,37 +914,7 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
 }
 
 // RESPONSE
-200 OK
-{
-  "id": "FU-lA9P4MRWn1F8QkO8EiQ",
-  "state": "CANCELLED",
-  "legs": [
-    {
-      "id": "839423832jIFwe",
-      "state": "PAUSED",
-      "departureTime": "2020-11-18T20:34:00Z",
-      "from": {
-        "stationId": "123",
-        "coordinates": {
-          "lng": 12.333,
-          "lat": 55.123
-        }
-      },
-      "assetType": {
-        "id": "bike",
-        "assetClass": "BICYCLE",
-        "assetSubClass": "bike"
-      },
-      "asset": {
-        "id": "bike-12331",
-        "overriddenProperties": {
-          "name": "Speedy"
-        }
-      },
-      "pricing": {.... },
-    }
-  ]
-}
+204 No Content
 ```
 
 ### Legs
@@ -957,13 +933,22 @@ GET /legs/239fwefJJOQPBGEAZZ23/
     "id": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w",
     "state": "PAUSED",
     "departureTime": "2021-03-01T13:36:45Z",
-    "arrivalTime": "2021-03-01T15:36:45Z" # only there for finished bookings
+    "arrivalTime": "2021-03-01T15:36:45Z" // "arrivalTime" only there for finished bookings
     "from": {
       "coordinates": {
         "lat": 51.9226929,
         "lng": 4.4975173
       },
-      "stationId": "3628"
+      "stationId": "3628",
+      "name": "Donkey Station"
+    },
+    "to": {                           // "to" only returned for finished bookings
+      "coordinates": {
+        "lat": 51.88222,
+        "lng": 4.7275173
+      },
+      "stationId": "3628",
+      "name": "Donkey Barn"
     },
     "asset": {
       "id": "7443",
