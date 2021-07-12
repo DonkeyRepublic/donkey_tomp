@@ -35,6 +35,7 @@ may change.
   * [Trip execution (Leg Events)](#trip-execution-leg-events)
     * [Locking and unlocking](#locking-and-unlocking)
     * [Finishing rental](#finishing-rental)
+    * [Refresh ekey](#refresh-ekey)
   * [Payment](#payment)
     * [Journal entries](#journal-entries)
 * [Webhooks](#webhooks)
@@ -261,6 +262,13 @@ Keep in mind that the booking can be cancelled only till first unlock of the bik
 #### Bluetooth lock
 
 For bluetooth lock the mechanism of locking/unlocking the bike consists of following steps:
+
+*Caveat*
+
+`assetAccessData` contains an ekey and a list of commands for that ekey. Those commands have to be used in order and once a command
+has been used you can't use an earlier command. SDK doesn't have a way of synchronizing which commands have already been used. Therefore in case
+you detect that user is using different installation of the app (user reinstalled the app or logged in using different phone) then you need to ask
+our service to refresh the ekey by calling [Refresh ekey endpoint](#refresh-ekey).
 
 Unlocking:
 * Using the SDK with the information from `assetAccessData` to unlock the bluetooth lock
@@ -1035,6 +1043,37 @@ POST /legs/239fwefJJOQPBGEAZZ23/events
 204 No Content
 ```
 
+#### Refresh ekey
+In case you detect that the user changed the installation of the app that they are using (they logged in on different phone or reinstalled the app) then for bluetooth locks
+you need to ask our service to refresh the ekey.
+
+```
+// REQUEST
+POST /legs/239fwefJJOQPBGEAZZ23/events
+
+{
+  "time": "2020-11-18T20:34:00Z",
+  "event": "ASSIGN_ASSET",
+  "asset": {
+    "id": "bike-12331",
+    "overriddenProperties": {
+      "location": {
+        "coordinates": {
+          "lng": 12.5021719,
+          "lat": 55.6824307
+        }
+      }
+    }
+  }
+}
+
+//RESPONSE
+204 No Content
+```
+
+Once you get a successful response, data in get leg or get booking endpoint will contain new ekey.
+
+
 ### Payment
 #### Journal Entries
 The journal entries returns all invoiced items for particular aggregator and city.
@@ -1072,6 +1111,7 @@ GET /payment/journal-entry
     "currencyCode": "EUR",
     "journalId": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w"
     "journalSequenceId": "1757",
+    "usedTime": 125, // How long was given leg in seconds, only shown for regular booking charges
     "details": {
       "estimated": false,
       "parts": [
@@ -1231,6 +1271,28 @@ POST /api/aggregators/tomp/testing/bike_state
       "locked": false
 }
 ```
+
+### Triggering state changes of the leg
+There are some situations where state of the leg will change and it is not triggered by your interaction with our TOMP API:
+* Support has to cancel a leg for given rider
+* Support has to finish a leg for given rider
+* Support assigns different bike to a leg
+
+Those state changes are communicated by leg webhooks. You can trigger them by calling endpoint described below with following actions:
+* `"FINISH"` - will finish given leg
+* `"CANCEL"` - will trigger cancellation of the leg
+* `"ASSIGN_ASSET"` - will assign a different bike to given leg. It will select a bike of the same type from a station where a leg was started. Therefore you have to make
+  sure that you test it with legs that started from a station that has other available bike of given type. In case there is no available bike to switch to then you will get an error.
+
+Keep in mind that this endpoint can be triggered on ongoing legs only, otherwise you will get an error
+
+```
+REQUEST
+POST /api/aggregators/tomp/testing/leg_action
+{
+    "leg_id": "OWFkZWE3MDhhN2Q4Njc4ODJjZDItMTI2MTEtYmlrZS0xLTA",
+    "leg_action": "FINISH" // or "CANCEL" or "ASSIGN_ASSET"
+}
 
 #### Extra costs
 We introduced a way of triggering an extra costs webhooks via an API call. Those API will work only in our staging environment.
