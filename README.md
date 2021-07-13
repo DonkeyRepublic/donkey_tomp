@@ -567,7 +567,7 @@ POST .../plannings?booking-intent=true
     "coordinates": {
       "lng": 12.333,
       "lat": 55.123
-    }
+    },
     "stationId": "1551"
   },
   "nrOfTravelers": 1
