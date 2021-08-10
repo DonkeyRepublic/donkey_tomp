@@ -1042,6 +1042,77 @@ POST /legs/239fwefJJOQPBGEAZZ23/events
 //RESPONSE
 204 No Content
 ```
+##### Possible errors
+* When lock is unlocked
+  ```json
+    HTTP/1.1 400 Bad Request
+    Content-Type: application/json
+
+    {
+      "errorcode": 4004,
+      "title": "Operation is illegal",
+      "detail": "Lock has to be locked"
+    }
+  ```
+
+* When user is not with vehicle
+  ```json
+    HTTP/1.1 400 Bad Request
+    Content-Type: application/json
+
+    {
+      "errorcode": 4004,
+      "title": "Operation is illegal",
+      "detail": "User has to be with vehicle"
+    }
+  ```
+
+* When bike is not inside a station
+  ```json
+    HTTP/1.1 400 Bad Request
+    Content-Type: application/json
+
+    {
+      "errorcode": 4004,
+      "title": "Operation is illegal",
+      "detail": "Rental has to end inside a dropoff location"
+    }
+  ```
+
+* When leg is already finished
+  ```json
+    HTTP/1.1 400 Bad Request
+    Content-Type: application/json
+
+    {
+      "errorcode": 4004,
+      "title": "Operation is illegal",
+      "detail": "Leg is finished"
+    }
+  ```
+
+* Invalid parameters - details of invalid parameters will be described in the `detail` property. Possible errors are missing meta parameters, invalid or missing coordinates
+  ```json
+    HTTP/1.1 400 Bad Request
+    Content-Type: application/json
+
+    {
+      "errorcode": 4002,
+      "title": "Invalid properties",
+      "detail": "/asset/overriddenProperties/meta is missing"
+    }
+  ```
+
+* Leg is not found
+  ```json
+    HTTP/1.1 404 Not Found
+    Content-Type: application/json
+
+    {
+      "errorcode": 4001,
+      "title": "Leg not found"
+    }
+  ```
 
 #### Refresh ekey
 In case you detect that the user changed the installation of the app that they are using (they logged in on different phone or reinstalled the app) then for bluetooth locks
