@@ -1364,6 +1364,7 @@ POST /api/aggregators/tomp/testing/leg_action
     "leg_id": "OWFkZWE3MDhhN2Q4Njc4ODJjZDItMTI2MTEtYmlrZS0xLTA",
     "leg_action": "FINISH" // or "CANCEL" or "ASSIGN_ASSET"
 }
+```
 
 #### Extra costs
 We introduced a way of triggering an extra costs webhooks via an API call. Those API will work only in our staging environment.
