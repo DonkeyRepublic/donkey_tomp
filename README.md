@@ -226,7 +226,7 @@ After the ride was 4320 minutes long (3 days) we charge 7 EUR per 1440 minutes (
      ```
       {
         "validFrom": "2020-11-18T20:34:00Z",
-        "validTo": "2020-11-19T21:34:00Z",
+        "validUntil": "2020-11-19T21:34:00Z",
         "tokenType": "ekey",
         "tokenData": {
           "ekey": {
@@ -245,7 +245,7 @@ After the ride was 4320 minutes long (3 days) we charge 7 EUR per 1440 minutes (
      ```
        {
          "validFrom": "2020-11-18T20:34:00Z",
-         "validTo": "2020-11-19T21:34:00Z",
+         "validUntil": "2020-11-19T21:34:00Z",
          "tokenType": "online",
          "tokenData": {
            "path": "/legs/239fwefJJOQPBGEAZZ23/events"
@@ -894,7 +894,7 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
       },
       "assetAccessData": {
         "validFrom": "2020-11-18T20:34:00Z",
-        "validTo": "2020-11-19T21:34:00Z",
+        "validUntil": "2020-11-19T21:34:00Z",
         "tokenType": "ekey",
         "tokenData": {
           "ekey": {
