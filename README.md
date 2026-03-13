@@ -497,16 +497,18 @@ GET ../operator/available-assets
             }
           }
         ],
-        "applicablePricing": {
-          "planId": "123",
-          "name": "Bike pricing",
-          "stationId": "123",
-          "isTaxable": false,
-          "description": "Pricing for bike",
-          "fare": {
-            ...
+        "applicablePricings": [
+          {
+            "planId": "123",
+            "name": "Bike pricing",
+            "stationId": "123",
+            "isTaxable": false,
+            "description": "Pricing for bike",
+            "fare": {
+              ...
+            }
           }
-        },
+        ]
     },
 
     // Station 7434 has 1 bike, 2 ebikes and no available parking spots
@@ -527,16 +529,18 @@ GET ../operator/available-assets
             }
           }
         ],
-        "applicablePricing": {
-          "planId": "123",
-          "name": "Ebike pricing",
-          "stationId": "123",
-          "isTaxable": false,
-          "description": "Pricing for ebike",
-          "fare": {
-            ...
+        "applicablePricings": [
+          {
+            "planId": "123",
+            "name": "Ebike pricing",
+            "stationId": "123",
+            "isTaxable": false,
+            "description": "Pricing for ebike",
+            "fare": {
+              ...
+            }
           }
-        },
+        ]
     },
     {
         "id": "bike",
@@ -563,16 +567,18 @@ GET ../operator/available-assets
             }
           }
         ],
-        "applicablePricing": {
-          "planId": "123",
-          "name": "Bike pricing",
-          "stationId": "123",
-          "isTaxable": false,
-          "description": "Pricing for bike",
-          "fare": {
-            ...
+        "applicablePricings": [
+          {
+            "planId": "123",
+            "name": "Bike pricing",
+            "stationId": "123",
+            "isTaxable": false,
+            "description": "Pricing for bike",
+            "fare": {
+              ...
+            }
           }
-        },
+        ]
     }
 ]
 ```
@@ -699,16 +705,18 @@ POST .../plannings?booking-intent=true
             "assetClass": "BICYCLE",
             "assetSubClass": "bike"
           },
-          "applicablePricing": {
-            "planId": "123",
-            "name": "Bike pricing",
-            "stationId": "123",
-            "isTaxable": false,
-            "description": "Pricing for bike",
-            "fare": {
-              ...
+          "applicablePricings": [
+            {
+              "planId": "123",
+              "name": "Bike pricing",
+              "stationId": "123",
+              "isTaxable": false,
+              "description": "Pricing for bike",
+              "fare": {
+                ...
+              }
             }
-          },
+          ],
           "pricing": {
             "estimated": false,
             "parts": [
@@ -720,7 +728,7 @@ POST .../plannings?booking-intent=true
                 "scaleType": "MINUTE",
                 "currencyCode": "DKK",
                 "type": "FLEX",
-                "unit_type": "MINUTE",
+                "unitType": "MINUTE",
                 "vatRate": 25
               },
               {
@@ -731,7 +739,7 @@ POST .../plannings?booking-intent=true
                 "scaleType": "MINUTE",
                 "currencyCode": "DKK",
                 "type": "FLEX",
-                "unit_type": "MINUTE",
+                "unitType": "MINUTE",
                 "vatRate": 25
               }
               ....
@@ -868,7 +876,7 @@ POST .../plannings/offers
                 "scaleType": "MINUTE",
                 "currencyCode": "DKK",
                 "type": "FLEX",
-                "unit_type": "MINUTE",
+                "unitType": "MINUTE",
                 "vatRate": 25
               },
               {
@@ -879,7 +887,7 @@ POST .../plannings/offers
                 "scaleType": "MINUTE",
                 "currencyCode": "DKK",
                 "type": "FLEX",
-                "unit_type": "MINUTE",
+                "unitType": "MINUTE",
                 "vatRate": 25
               }
               ....
@@ -1016,7 +1024,7 @@ POST .../planning/offers
                 "scaleType": "MINUTE",
                 "currencyCode": "DKK",
                 "type": "FLEX",
-                "unit_type": "MINUTE",
+                "unitType": "MINUTE",
                 "vatRate": 25
               },
               {
@@ -1027,7 +1035,7 @@ POST .../planning/offers
                 "scaleType": "MINUTE",
                 "currencyCode": "DKK",
                 "type": "FLEX",
-                "unit_type": "MINUTE",
+                "unitType": "MINUTE",
                 "vatRate": 25
               }
               ....
@@ -1273,11 +1281,41 @@ POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
 // REQUEST
 POST /bookings/FU-lA9P4MRWn1F8QkO8EiQ/events
 {
-  operation: "CANCEL"
+  "operation": "CANCEL"
 }
 
 // RESPONSE
-204 No Content
+200 OK
+{
+  "id": "FU-lA9P4MRWn1F8QkO8EiQ",
+  "state": "CANCELLED",
+  "legs": [
+    {
+      "id": "839423832jIFwe",
+      "state": "CANCELLED",
+      "from": {
+        "stationId": "123",
+        "name": "Donkey Station",
+        "coordinates": {
+          "lng": 12.333,
+          "lat": 55.123
+        }
+      },
+      "assetType": {
+        "id": "bike",
+        "assetClass": "BICYCLE",
+        "assetSubClass": "bike"
+      },
+      "asset": {
+        "id": "bike-12331",
+        "overriddenProperties": {
+          "name": "Speedy"
+        }
+      },
+      "pricing": {.... }
+    }
+  ]
+}
 ```
 
 ### Legs
