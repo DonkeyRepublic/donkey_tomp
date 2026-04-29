@@ -52,6 +52,9 @@ may change.
       - [Refresh ekey](#refresh-ekey)
     - [Payment](#payment)
       - [Journal Entries](#journal-entries)
+    - [Support](#support)
+      - [Create support ticket](#create-support-ticket)
+        - [Possible errors](#possible-errors-3)
   - [Webhooks](#webhooks)
     - [Leg Events Webhook](#leg-events-webhook)
     - [Additional costs](#additional-costs)
@@ -1653,6 +1656,81 @@ GET /payment/journal-entry
   }
 ]
 ```
+
+### Support
+#### Create support ticket
+This endpoint allows the aggregator to raise a support ticket for a given booking. It is intended to
+be used when the rider reports an issue that requires attention from our support staff (for example:
+the bike could not be unlocked, was found in a poor condition or was involved in an accident). The
+ticket is associated with the bike that is (or was) assigned to the booking identified by the `id`
+field in the request body.
+
+If a ticket reporting the same kind of issue is already open for the bike, no new ticket is created
+and the existing one is returned in the response. This avoids duplicate tickets when the same issue
+is reported multiple times.
+
+Recognized `supportType` values:
+
+| `supportType`         | Typical use case                                    |
+| --------------------- | --------------------------------------------------- |
+| `NOT_CLEAN`           | Bike is dirty or needs cleaning                     |
+| `NOT_AVAILABLE`       | Bike reported missing from a station                |
+| `NOT_AT_LOCATION`     | Bike is not where the system reports it             |
+| `MISSING_AFTER_PAUSE` | Bike could not be found after a pause               |
+| `UNABLE_TO_OPEN`      | Rider could not unlock the bike                     |
+| `UNABLE_TO_CLOSE`     | Rider could not lock the bike                       |
+| `API_TECHNICAL`       | Technical issue reported by the aggregator          |
+| `API_FUNCTIONAL`      | Functional issue reported by the aggregator         |
+| `BROKEN_DOWN`         | Bike has a defect that makes it unusable            |
+| `ACCIDENT`            | Bike was involved in an accident or was vandalised  |
+
+Any other value will be accepted but treated as a generic issue.
+
+The response contains a `supportStatus` object whose `status` reflects the current state of the ticket:
+* `PROCESSING` - ticket is open and being handled by our support team
+* `RESOLVED` - ticket has already been closed
+
+```
+// REQUEST
+POST /support
+{
+  "supportRequest": {
+    "id": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w", // booking id
+    "supportType": "BROKEN_DOWN",
+    "priority": "ERROR_CANNOT_CONTINUE",
+    "comment": "The chain came off the bike and the rider couldn't continue."
+  }
+}
+
+// RESPONSE
+201 Created
+{
+  "supportStatus": {
+    "id": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w", // booking id, echoed from the request
+    "status": "PROCESSING",
+    "comment": "The chain came off the bike and the rider couldn't continue."
+  }
+}
+```
+
+The `comment` field is optional - when omitted we store a generic placeholder message on our side.
+
+##### Possible errors
+* Booking with given `id` was not found
+  ```
+    HTTP/1.1 404 Not Found
+  ```
+
+* Ticket creation failed for an unexpected reason
+  ```json
+    HTTP/1.1 422 Unprocessable Entity
+    Content-Type: application/json
+
+    {
+      "errorcode": 5002,
+      "title": "Something went wrong"
+    }
+  ```
 
 ## Webhooks
 
