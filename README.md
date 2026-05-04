@@ -1686,7 +1686,7 @@ Recognized `supportType` values:
 
 Any other value will be accepted but treated as a generic issue.
 
-The response contains a `supportStatus` object whose `status` reflects the current state of the ticket:
+The response `status` reflects the current state of the ticket:
 * `PROCESSING` - ticket is open and being handled by our support team
 * `RESOLVED` - ticket has already been closed
 
@@ -1694,22 +1694,18 @@ The response contains a `supportStatus` object whose `status` reflects the curre
 // REQUEST
 POST /support
 {
-  "supportRequest": {
-    "id": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w", // booking id
-    "supportType": "BROKEN_DOWN",
-    "priority": "ERROR_CANNOT_CONTINUE",
-    "comment": "The chain came off the bike and the rider couldn't continue."
-  }
+  "id": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w", // booking id
+  "supportType": "BROKEN_DOWN",
+  "priority": "ERROR_CANNOT_CONTINUE",
+  "comment": "The chain came off the bike and the rider couldn't continue."
 }
 
 // RESPONSE
-201 Created
+200 OK
 {
-  "supportStatus": {
-    "id": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w", // booking id, echoed from the request
-    "status": "PROCESSING",
-    "comment": "The chain came off the bike and the rider couldn't continue."
-  }
+  "id": "YzkwOWMwOGQwMy0zNjI4LWJpa2UtMS0w", // booking id, echoed from the request
+  "status": "PROCESSING",
+  "comment": "The chain came off the bike and the rider couldn't continue."
 }
 ```
 
